@@ -36,8 +36,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-slate-50 p-4 pb-12">
       <header className="py-6">
-        <h1 className="text-2xl font-bold text-slate-800">全能刷题大厅</h1>
-        <p className="text-sm text-slate-500 mt-1">今天想刷点什么？</p>
+        <h1 className="text-2xl font-bold text-slate-800">题库</h1>
+        <p className="text-sm text-slate-500 mt-1">快刷吧</p>
       </header>
 
       <main className="space-y-6">
@@ -53,13 +53,13 @@ export default function Home() {
                 onClick={() => router.push(`/exam?mode=random&subject=${encodeURIComponent(sub.name)}`)}
                 className="w-full bg-blue-50 text-blue-700 font-medium p-4 rounded-xl text-left hover:bg-blue-100 transition"
               >
-                🎲 无尽随机模式
+                🎲 全部题目
               </button>
               <button 
                 onClick={() => router.push(`/exam?mode=standard&subject=${encodeURIComponent(sub.name)}`)}
                 className="w-full bg-indigo-50 text-indigo-700 font-medium p-4 rounded-xl text-left hover:bg-indigo-100 transition"
               >
-                📝 闯关抽题模式 (40题)
+                📝 抽取不放回 (40题)
               </button>
             </div>
           </div>
