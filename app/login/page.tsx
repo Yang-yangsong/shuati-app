@@ -34,7 +34,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-        <h1 className="text-2xl font-bold text-center mb-8">专属刷题神器</h1>
+        <h1 className="text-2xl font-bold text-center mb-8">syy刷题</h1>
         {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-4">{error}</div>}
         
         <form onSubmit={handleLogin} className="space-y-4">

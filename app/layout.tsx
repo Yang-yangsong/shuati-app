@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "专属刷题神器",
-  description: "随时随地，高效刷题",
+  title: "syy刷题神器",
+  description: "使劲背。。。",
 };
 
 export default function RootLayout({
