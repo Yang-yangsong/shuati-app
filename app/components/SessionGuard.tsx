@@ -10,7 +10,7 @@ export default function SessionGuard() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // 如果在登录页，不需要查岗
+    // 登录页不需要查岗
     if (pathname === "/login") return;
 
     const checkDeviceKick = async () => {
@@ -20,6 +20,13 @@ export default function SessionGuard() {
       // 拿出当前浏览器本地存的通行证
       const localToken = localStorage.getItem("my_device_token");
       
+      // 【新增修复】：如果你是旧版本保留的登录状态，本地没有通行证，直接强制下线！
+      if (!localToken) {
+        await supabase.auth.signOut();
+        router.push("/login");
+        return;
+      }
+
       // 去数据库查当前唯一合法的通行证
       const { data: activeSession } = await supabase
         .from("active_sessions")
@@ -38,14 +45,11 @@ export default function SessionGuard() {
       }
     };
 
-    // 每次页面加载时查一次
     checkDeviceKick();
-
-    // 设定一个定时器，每隔 5 秒暗中查一次岗（确保挂机也会被踢出）
     const interval = setInterval(checkDeviceKick, 5000);
     return () => clearInterval(interval);
     
   }, [pathname, router]);
 
-  return null; // 隐形组件，不渲染任何界面
+  return null;
 }

@@ -35,9 +35,23 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 pb-12">
-      <header className="py-6">
-        <h1 className="text-2xl font-bold text-slate-800">题库</h1>
-        <p className="text-sm text-slate-500 mt-1">快刷吧</p>
+      {/* 头部区域：新增了退出登录按钮 */}
+      <header className="py-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">全能刷题大厅</h1>
+          <p className="text-sm text-slate-500 mt-1">今天想刷点什么？</p>
+        </div>
+        <button 
+          onClick={async () => {
+            if(!confirm("确定要退出登录吗？")) return;
+            await supabase.auth.signOut();
+            localStorage.removeItem("my_device_token");
+            router.push("/login");
+          }} 
+          className="text-sm font-medium text-slate-400 hover:text-red-500 transition-colors px-3 py-1 rounded-md hover:bg-red-50"
+        >
+          退出登录
+        </button>
       </header>
 
       <main className="space-y-6">
@@ -48,12 +62,11 @@ export default function Home() {
               <p className="text-sm text-slate-500">总题数: {sub.count} 题</p>
             </div>
             <div className="space-y-3 mt-6">
-              {/* 注意这里的 URL：我们把 subject 参数传给了刷题页面 */}
               <button 
                 onClick={() => router.push(`/exam?mode=random&subject=${encodeURIComponent(sub.name)}`)}
                 className="w-full bg-blue-50 text-blue-700 font-medium p-4 rounded-xl text-left hover:bg-blue-100 transition"
               >
-                🎲 全部题目
+                🎲 全部题目 (随机练习)
               </button>
               <button 
                 onClick={() => router.push(`/exam?mode=standard&subject=${encodeURIComponent(sub.name)}`)}
