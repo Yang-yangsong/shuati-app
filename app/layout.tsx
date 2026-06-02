@@ -1,9 +1,11 @@
+// app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
+import SessionGuard from "./components/SessionGuard"; // 引入我们的保安组件
 
 export const metadata: Metadata = {
   title: "syy刷题",
-  description: "使劲背。。。",
+  description: "快点背吧。。。",
 };
 
 export default function RootLayout({
@@ -13,8 +15,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh">
-      {/* 去掉了报错的字体变量，保留了 Tailwind 的抗锯齿基础样式 */}
       <body className="antialiased">
+        <SessionGuard /> {/* 装载隐形防多开保安 */}
         {children}
       </body>
     </html>
