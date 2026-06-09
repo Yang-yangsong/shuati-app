@@ -4,40 +4,42 @@ import { useEffect, useState, Suspense } from "react";
 import { supabase } from "@/lib/supabase";
 import { useSearchParams, useRouter } from "next/navigation";
 
-// --- 独立的题目卡片组件 ---
 function QuestionCard({ data, index, selectedOpts, onChange, isGraded }: { data: any; index: number; selectedOpts: string[]; onChange: (opts: string[]) => void; isGraded: boolean }) {
   const [showAnswer, setShowAnswer] = useState(false);
+  
+  // 【新增】利用 React 的 useMemo，保证只有在题目变化时才洗牌一次，不会乱跳
+  const shuffledOptions = useState(() => {
+    const entries = Object.entries(data.options);
+    // Fisher-Yates 洗牌
+    for (let i = entries.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [entries[i], entries[j]] = [entries[j], entries[i]];
+    }
+    return entries;
+  })[0];
 
-  // 智能处理点击逻辑
   const handleOptionClick = (key: string) => {
-    if (isGraded || showAnswer) return; // 评分后或看答案后禁止修改
-
+    if (isGraded || showAnswer) return;
     if (data.type === "多选题") {
-      const newOpts = selectedOpts.includes(key)
-        ? selectedOpts.filter((k) => k !== key)
-        : [...selectedOpts, key];
+      const newOpts = selectedOpts.includes(key) ? selectedOpts.filter((k) => k !== key) : [...selectedOpts, key];
       onChange(newOpts);
     } else {
       onChange([key]);
     }
   };
 
-  // 只要交卷了，或者手动点了看答案，就显示解析样式
   const effectivelyShow = isGraded || showAnswer;
 
   const getOptionStyle = (key: string) => {
     const isSelected = selectedOpts.includes(key);
+    // 【关键】这里判断正确与否：不再看 key，而是看 data.answer 字符串里有没有这个字母
     const isCorrect = data.answer.includes(key);
 
     if (!effectivelyShow) {
-      return isSelected 
-        ? "bg-blue-100 border-blue-400 text-blue-800 shadow-sm" 
-        : "bg-white border-slate-200 hover:bg-slate-50";
+      return isSelected ? "bg-blue-100 border-blue-400 text-blue-800 shadow-sm" : "bg-white border-slate-200 hover:bg-slate-50";
     }
-    
     if (isCorrect) return "bg-green-100 border-green-500 text-green-800 font-bold";
     if (isSelected && !isCorrect) return "bg-red-100 border-red-500 text-red-800 line-through";
-    
     return "bg-slate-50 border-slate-200 opacity-50";
   };
 
@@ -50,17 +52,17 @@ function QuestionCard({ data, index, selectedOpts, onChange, isGraded }: { data:
         {index + 1}. {data.question}
       </h2>
       <div className="space-y-3 mb-4">
-        {Object.entries(data.options).map(([key, value]) => (
+        {shuffledOptions.map(([key, value]) => (
           <button
             key={key}
             onClick={() => handleOptionClick(key)}
             className={`w-full text-left p-4 rounded-xl border transition-colors ${getOptionStyle(key)}`}
           >
+            {/* 这里的 key 依然是原来的 A/B/C/D，所以点击后对应的逻辑依然是对的 */}
             <span className="font-semibold mr-2">{key}.</span> {value as string}
           </button>
         ))}
       </div>
-      {/* 没交卷时才允许单题看答案 */}
       {!isGraded && (
         <div className="flex justify-end">
           <button onClick={() => setShowAnswer(!showAnswer)} className="text-sm font-medium text-slate-500 hover:text-blue-600 transition">
