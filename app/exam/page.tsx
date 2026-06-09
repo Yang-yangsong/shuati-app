@@ -7,33 +7,38 @@ import { useSearchParams, useRouter } from "next/navigation";
 function QuestionCard({ data, index, selectedOpts, onChange, isGraded }: { data: any; index: number; selectedOpts: string[]; onChange: (opts: string[]) => void; isGraded: boolean }) {
   const [showAnswer, setShowAnswer] = useState(false);
   
-  // 【新增】利用 React 的 useMemo，保证只有在题目变化时才洗牌一次，不会乱跳
-  const shuffledOptions = useState(() => {
+  // 【修复核心】：在组件加载时洗牌，不仅打乱选项，还按顺序赋予它们 A, B, C, D 的显示标签
+  const [shuffledOptions] = useState(() => {
     const entries = Object.entries(data.options);
     // Fisher-Yates 洗牌
     for (let i = entries.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [entries[i], entries[j]] = [entries[j], entries[i]];
     }
-    return entries;
-  })[0];
+    // 重新映射：将乱序后的数组，分配 A, B, C, D 等顺序显示标签
+    return entries.map(([key, value], i) => ({
+      originalKey: key, // 这是题目原本的正确答案索引 (例如 "A")
+      displayLabel: String.fromCharCode(65 + i), // 这是显示给用户的顺序 (A, B, C, D...)
+      value: value
+    }));
+  });
 
-  const handleOptionClick = (key: string) => {
+  const handleOptionClick = (originalKey: string) => {
     if (isGraded || showAnswer) return;
     if (data.type === "多选题") {
-      const newOpts = selectedOpts.includes(key) ? selectedOpts.filter((k) => k !== key) : [...selectedOpts, key];
+      const newOpts = selectedOpts.includes(originalKey) ? selectedOpts.filter((k) => k !== originalKey) : [...selectedOpts, originalKey];
       onChange(newOpts);
     } else {
-      onChange([key]);
+      onChange([originalKey]);
     }
   };
 
   const effectivelyShow = isGraded || showAnswer;
 
-  const getOptionStyle = (key: string) => {
-    const isSelected = selectedOpts.includes(key);
-    // 【关键】这里判断正确与否：不再看 key，而是看 data.answer 字符串里有没有这个字母
-    const isCorrect = data.answer.includes(key);
+  const getOptionStyle = (originalKey: string) => {
+    const isSelected = selectedOpts.includes(originalKey);
+    // 正确答案包含该原始键值即为正确
+    const isCorrect = data.answer.includes(originalKey);
 
     if (!effectivelyShow) {
       return isSelected ? "bg-blue-100 border-blue-400 text-blue-800 shadow-sm" : "bg-white border-slate-200 hover:bg-slate-50";
@@ -52,14 +57,15 @@ function QuestionCard({ data, index, selectedOpts, onChange, isGraded }: { data:
         {index + 1}. {data.question}
       </h2>
       <div className="space-y-3 mb-4">
-        {shuffledOptions.map(([key, value]) => (
+        {shuffledOptions.map((opt) => (
           <button
-            key={key}
-            onClick={() => handleOptionClick(key)}
-            className={`w-full text-left p-4 rounded-xl border transition-colors ${getOptionStyle(key)}`}
+            key={opt.originalKey}
+            onClick={() => handleOptionClick(opt.originalKey)}
+            className={`w-full text-left p-4 rounded-xl border transition-colors ${getOptionStyle(opt.originalKey)}`}
           >
-            {/* 这里的 key 依然是原来的 A/B/C/D，所以点击后对应的逻辑依然是对的 */}
-            <span className="font-semibold mr-2">{key}.</span> {value as string}
+            {/* 这里的显示标签是动态分配的 A, B, C, D */}
+            <span className="font-semibold mr-2">{opt.displayLabel}.</span> 
+            {opt.value as string}
           </button>
         ))}
       </div>
